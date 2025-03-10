@@ -27,8 +27,6 @@ jobs:
       run: |
         cd server
         pip install poetry
-        poetry add ruff
-        poetry add mypy
   
     - name: Ruff linting
       run: |
