@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-import routers.anecdote as anecdote
+import routers.anecdote_router as anecdote
 
 
 app = FastAPI()

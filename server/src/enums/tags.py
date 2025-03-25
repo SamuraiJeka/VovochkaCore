@@ -6,6 +6,7 @@ class Tags(Enum):
     JEW = "про евреев"
     CHURCH = "про церковь"
     MOTHER_IN_LAW = "про тёщу"
-    ALCHOGOL = "про алкошей"
+    ALCOHOL = "про алкошей"
     ZOO = "про зверей"
     SHTIRLITS = "про Штирлица"
+    OTHERS = "другое"
