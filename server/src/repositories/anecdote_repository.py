@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, insert, update, delete, exists
 
 from models.anecdote import Anecdote
 from schemas.anecdote_schema import AnecdotePostSchema, AnecdoteUpdateSchema
+from exceptions.anecdote_exceptions import AnecdoteNotFoundError, AnecdoteAlreadyExist
 
 
 class AnecdoteRepository:
@@ -13,18 +14,21 @@ class AnecdoteRepository:
         query = select(Anecdote).where(Anecdote.id == anecdote_id)
         result = await self.__session.execute(query)
         anecdote = result.scalar_one_or_none()
+        if anecdote is None:
+            raise AnecdoteNotFoundError
         await self.__session.refresh(anecdote)
         return anecdote
 
     async def create(self, anecdote_dto: AnecdotePostSchema) -> Anecdote | None:
+        if await self.is_exist(anecdote_name=anecdote_dto.name):
+            raise AnecdoteAlreadyExist
         query = (
             insert(Anecdote)
             .values(
                 name=anecdote_dto.name,
                 content=anecdote_dto.content,
                 tag=anecdote_dto.tag,
-            )
-            .returning(Anecdote)
+            ).returning(Anecdote)
         )
         result = await self.__session.execute(query)
         await self.__session.commit()
@@ -45,11 +49,23 @@ class AnecdoteRepository:
         result = await self.__session.execute(query)
         await self.__session.commit()
         anecdote = result.scalar_one_or_none()
+        if anecdote is None:
+            raise AnecdoteNotFoundError
         await self.__session.refresh(anecdote)
         return anecdote
 
     async def delete(self, anecdote_id: int) -> bool:
+        if not await self.is_exist(anecdote_id=anecdote_id):
+            raise AnecdoteNotFoundError
         query = delete(Anecdote).where(Anecdote.id == anecdote_id)
         result = await self.__session.execute(query)
         await self.__session.commit()
         return bool(result)
+    
+    async def is_exist(self, anecdote_id: str = None, anecdote_name: int = None) -> bool | None:
+        if anecdote_id is not None:
+            query = select(exists().where(Anecdote.id == anecdote_id))
+        elif anecdote_name is not None:
+            query = select(exists().where(Anecdote.name == anecdote_name))
+        result = await self.__session.execute(query)
+        return result.scalar()
