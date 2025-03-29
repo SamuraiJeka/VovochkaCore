@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from repositories.anecdote_repository import AnecdoteRepository
-from exceptions.anecdote_exceptions import AnecdoteNotFoundError, AnecdoteAlreadyExist
 from schemas.anecdote_schema import (
     AnecdoteSchema,
     AnecdotePostSchema,

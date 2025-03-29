@@ -62,7 +62,7 @@ class AnecdoteRepository:
         await self.__session.commit()
         return bool(result)
     
-    async def is_exist(self, anecdote_id: str = None, anecdote_name: int = None) -> bool | None:
+    async def is_exist(self, anecdote_id: int | None = None, anecdote_name: str | None = None) -> bool | None:
         if anecdote_id is not None:
             query = select(exists().where(Anecdote.id == anecdote_id))
         elif anecdote_name is not None:
