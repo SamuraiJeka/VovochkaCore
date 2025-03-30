@@ -28,7 +28,7 @@ exclude = [
     "__init__.py",
     "versions",
     "client",
-    "migraions"
+    "migrations"
 ]
 
 # Same as Black.

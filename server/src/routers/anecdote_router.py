@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from core.db import sessionmaker
-from service.anecdote_service import AnecdoteService as service
+from services.anecdote_service import AnecdoteService as service
 from exceptions.anecdote_exceptions import AnecdoteNotFoundError, AnecdoteAlreadyExist
 from schemas.anecdote_schema import (
     AnecdoteSchema,
@@ -13,8 +13,10 @@ from schemas.anecdote_schema import (
 router = APIRouter(prefix="/anecdote", tags=["anecdote"])
 
 
-@router.get("/")
-async def get_all_anecdotes() -> AnecdoteSchema: ...
+@router.get("/page")
+async def get_page_anecdotes(offset: int, limit: int) -> list[AnecdoteSchema]:
+    async with sessionmaker() as session:
+        return await service(session).get_page(offset, limit)
 
 
 @router.get("/{anecdote_id}")

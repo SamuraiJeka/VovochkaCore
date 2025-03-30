@@ -18,6 +18,11 @@ class AnecdoteRepository:
             raise AnecdoteNotFoundError
         await self.__session.refresh(anecdote)
         return anecdote
+    
+    async def get_page(self, offset: int, limit: int) -> list[Anecdote] | None:
+        query = select(Anecdote).offset(offset).limit(limit)
+        result = await self.__session.execute(query)
+        return list(result.scalars().all())
 
     async def create(self, anecdote_dto: AnecdotePostSchema) -> Anecdote | None:
         if await self.is_exist(anecdote_name=anecdote_dto.name):
