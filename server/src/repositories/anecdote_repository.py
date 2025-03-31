@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete, exists
+from sqlalchemy import select, insert, update, delete, exists, func
 
 from models.anecdote import Anecdote
 from schemas.anecdote_schema import AnecdotePostSchema, AnecdoteUpdateSchema
@@ -23,6 +23,15 @@ class AnecdoteRepository:
         query = select(Anecdote).offset(offset).limit(limit)
         result = await self.__session.execute(query)
         return list(result.scalars().all())
+    
+    async def get_random_anecdote(self) -> Anecdote | None:
+        query = select(Anecdote).order_by(func.random()).limit(1)
+        result = await self.__session.execute(query)
+        anecdote = result.scalars().one_or_none()
+        if anecdote is None:
+            raise AnecdoteNotFoundError
+        await self.__session.refresh(anecdote)
+        return anecdote
 
     async def create(self, anecdote_dto: AnecdotePostSchema) -> Anecdote | None:
         if await self.is_exist(anecdote_name=anecdote_dto.name):

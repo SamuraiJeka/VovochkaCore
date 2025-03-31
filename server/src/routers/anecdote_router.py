@@ -19,6 +19,15 @@ async def get_page_anecdotes(offset: int, limit: int) -> list[AnecdoteSchema]:
         return await service(session).get_page(offset, limit)
 
 
+@router.get("/random")
+async def get_random_anecdote() -> AnecdoteSchema:
+    try:
+        async with sessionmaker() as session:
+            return await service(session).get_random_anecdote()
+    except AnecdoteNotFoundError as exc:
+        raise HTTPException(detail=exc.msg, status_code=exc.status)
+
+
 @router.get("/{anecdote_id}")
 async def get_anecdote_by_id(anecdote_id: int) -> AnecdoteSchema:
     try:

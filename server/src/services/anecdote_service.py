@@ -23,6 +23,10 @@ class AnecdoteService:
     async def get_page(self, offset: int, limit: int) -> list[AnecdoteSchema]:
         anecdote_page = await self.__reposiotory.get_page(offset, limit)
         return [AnecdoteSchema.model_validate(anecdote, from_attributes=True) for anecdote in anecdote_page]
+    
+    async def get_random_anecdote(self) -> AnecdoteSchema:
+        anecdote = await self.__reposiotory.get_random_anecdote()
+        return AnecdoteSchema.model_validate(anecdote, from_attributes=True)
 
     async def update(
         self, anecdote_id: int, anecdote_dto: AnecdoteUpdateSchema
