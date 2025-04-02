@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete, exists, func
+from sqlalchemy import select, insert, update, delete, exists, or_, func
 
 from models.anecdote import Anecdote
 from schemas.anecdote_schema import AnecdotePostSchema, AnecdoteUpdateSchema
@@ -19,10 +19,20 @@ class AnecdoteRepository:
         await self.__session.refresh(anecdote)
         return anecdote
     
-    async def get_page(self, offset: int, limit: int) -> list[Anecdote] | None:
+    async def get_page(self, offset: int, limit: int, search: str | None = None) -> list[Anecdote] | None:
         query = select(Anecdote).offset(offset).limit(limit)
+        if search:
+            query = query.filter(
+                or_(
+                    Anecdote.name.ilike(f"%{search}%"),
+                    Anecdote.content.ilike(f"%{search}%")
+                )
+            )
         result = await self.__session.execute(query)
-        return list(result.scalars().all())
+        anecdote_list = list(result.scalars().all())
+        if not anecdote_list:
+            raise AnecdoteNotFoundError
+        return anecdote_list
     
     async def get_random_anecdote(self) -> Anecdote | None:
         query = select(Anecdote).order_by(func.random()).limit(1)

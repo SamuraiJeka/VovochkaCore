@@ -20,8 +20,8 @@ class AnecdoteService:
         anecdote = await self.__reposiotory.get_by_id(anecdote_id)
         return AnecdoteSchema.model_validate(anecdote, from_attributes=True)
     
-    async def get_page(self, offset: int, limit: int) -> list[AnecdoteSchema]:
-        anecdote_page = await self.__reposiotory.get_page(offset, limit)
+    async def get_page(self, offset: int, limit: int, search: str | None = None) -> list[AnecdoteSchema]:
+        anecdote_page = await self.__reposiotory.get_page(offset, limit, search)
         return [AnecdoteSchema.model_validate(anecdote, from_attributes=True) for anecdote in anecdote_page]
     
     async def get_random_anecdote(self) -> AnecdoteSchema:

@@ -14,9 +14,12 @@ router = APIRouter(prefix="/anecdote", tags=["anecdote"])
 
 
 @router.get("/page")
-async def get_page_anecdotes(offset: int, limit: int) -> list[AnecdoteSchema]:
-    async with sessionmaker() as session:
-        return await service(session).get_page(offset, limit)
+async def get_page_anecdotes(offset: int, limit: int, search: str | None = None) -> list[AnecdoteSchema]:
+    try:
+        async with sessionmaker() as session:
+            return await service(session).get_page(offset, limit, search)
+    except AnecdoteNotFoundError as exc:
+        raise HTTPException(detail=exc.msg, status_code=exc.status)
 
 
 @router.get("/random")
