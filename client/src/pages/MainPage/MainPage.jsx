@@ -1,19 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import styles from "./MainPage.module.scss"
 import LinkPage from "../../shared/Link/LinkPage";
 const MainPage = () =>
 {
-    const get_random_anecdote = () => {
-        const response = axios.get("localhost:5000/anecdote/random")
-        return response.data
+    const [anecdote, setAnecdote] = useState({});
+
+    const get_random_anecdote = async () => {
+        try {
+            const response = await axios.get("http://localhost:5000/anecdote/random");
+            setAnecdote({
+                name: response.data.name,
+                content: response.data.content
+            });
+        } catch (error) {
+            console.error("Ошибка при получении анекдота:", error);
+        }
     }
+
+    useEffect(() => {
+        get_random_anecdote();
+    }, []);
 
     return(
         <div className={styles.main}>
             <input type="text"/>
             <div className={styles.anecdote}>
-                <h1>Название</h1>
-                <h4>fefef</h4>
+                <h1>{anecdote.name}</h1>
+                <h3>{anecdote.content}</h3>
             </div>
             <div>
                 <button className={styles.random_button} onClick={() => get_random_anecdote()}>Рандомный анекдот</button>
