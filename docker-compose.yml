@@ -35,12 +35,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./client:/client
     environment:
       - CHOKIDAR_USEPOLLING=true
-    stdin_open: true
-    tty: true
     depends_on:
       backend:
         condition: service_started
