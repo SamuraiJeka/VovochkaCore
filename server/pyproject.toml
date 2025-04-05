@@ -16,9 +16,9 @@ ruff = "^0.9.10"
 mypy = "^1.15.0"
 alembic = "^1.15.1"
 asyncpg = "^0.30.0"
-sqladmin = "^0.20.1"
 bcrypt = "^4.3.0"
 itsdangerous = "^2.2.0"
+sqladmin = "^0.20.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

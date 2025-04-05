@@ -4,6 +4,7 @@ from sqladmin import Admin
 
 from core.db import engine, settings
 from utils.admin.auth import AdminAuth 
+from utils.admin.views import AdminView, AnecdoteView
 
 import routers.anecdote_router as anecdote
 
@@ -16,6 +17,8 @@ admin = Admin(
     engine=engine,
     authentication_backend=authentication_backend
 )
+admin.add_view(AdminView)
+admin.add_view(AnecdoteView)
 
 app.add_middleware(
     CORSMiddleware,
