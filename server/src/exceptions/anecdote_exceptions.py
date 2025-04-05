@@ -10,3 +10,9 @@ class AnecdoteAlreadyExist(Exception):
     def __init__(self):
         self.msg = "Днекдот с таким именем уже существует"
         self.status = status.HTTP_400_BAD_REQUEST
+
+
+class TagDoesNotExist(Exception):
+    def __init__(self):
+        self.msg = "Тег не существует"
+        self.status = status.HTTP_400_BAD_REQUEST

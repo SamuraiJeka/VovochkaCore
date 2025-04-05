@@ -34,6 +34,14 @@ class AnecdoteRepository:
             raise AnecdoteNotFoundError
         return anecdote_list
     
+    async def get_category(self, offset: int, limit:int, tag: str) -> list[Anecdote] | None:
+        query = select(Anecdote).where(Anecdote.tag == tag).offset(offset).limit(limit)
+        result = await self.__session.execute(query)
+        anecdote_list = list(result.scalars().all())
+        if not anecdote_list:
+            raise AnecdoteNotFoundError
+        return anecdote_list
+    
     async def get_random_anecdote(self) -> Anecdote | None:
         query = select(Anecdote).order_by(func.random()).limit(1)
         result = await self.__session.execute(query)

@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException
 
 from core.db import sessionmaker
 from services.anecdote_service import AnecdoteService as service
-from exceptions.anecdote_exceptions import AnecdoteNotFoundError, AnecdoteAlreadyExist
+from exceptions.anecdote_exceptions import (
+    AnecdoteNotFoundError,
+    AnecdoteAlreadyExist,
+    TagDoesNotExist
+)
 from schemas.anecdote_schema import (
     AnecdoteSchema,
     AnecdotePostSchema,
@@ -21,6 +25,17 @@ async def get_page_anecdotes(offset: int, limit: int, search: str | None = None)
     except AnecdoteNotFoundError as exc:
         raise HTTPException(detail=exc.msg, status_code=exc.status)
 
+
+@router.get("/category")
+async def get_category(offset: int, limit: int, tag: str) -> list[AnecdoteSchema]:
+    try:
+        async with sessionmaker() as session:
+            return await service(session).get_category(offset, limit, tag)
+    except AnecdoteNotFoundError as exc:
+        raise HTTPException(detail=exc.msg, status_code=exc.status)
+    except TagDoesNotExist as exc:
+        raise HTTPException(detail=exc.msg, status_code=exc.status)
+        
 
 @router.get("/random")
 async def get_random_anecdote() -> AnecdoteSchema:
@@ -47,6 +62,7 @@ async def post_anecdote(anecdote_dto: AnecdotePostSchema) -> AnecdoteSchema:
             return await service(session).create(anecdote_dto)
     except AnecdoteAlreadyExist as exc:
         raise HTTPException(detail=exc.msg, status_code=exc.status)
+
 
 @router.patch("/{anecdote_id}")
 async def update_anecdote(
