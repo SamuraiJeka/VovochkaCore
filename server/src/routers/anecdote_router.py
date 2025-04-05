@@ -5,7 +5,7 @@ from services.anecdote_service import AnecdoteService as service
 from exceptions.anecdote_exceptions import (
     AnecdoteNotFoundError,
     AnecdoteAlreadyExist,
-    TagDoesNotExist
+    TagDoesNotExist,
 )
 from schemas.anecdote_schema import (
     AnecdoteSchema,
@@ -18,7 +18,11 @@ router = APIRouter(prefix="/anecdote", tags=["anecdote"])
 
 
 @router.get("/page")
-async def get_page_anecdotes(offset: int, limit: int, search: str | None = None) -> list[AnecdoteSchema]:
+async def get_page_anecdotes(
+    offset: int,
+    limit: int,
+    search: str | None = None
+) -> list[AnecdoteSchema]:
     try:
         async with sessionmaker() as session:
             return await service(session).get_page(offset, limit, search)

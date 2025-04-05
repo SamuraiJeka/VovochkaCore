@@ -19,8 +19,8 @@ class Admin(Base):
         self.password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-@event.listens_for(Admin, 'before_insert')
-@event.listens_for(Admin, 'before_update')
+@event.listens_for(Admin, "before_insert")
+@event.listens_for(Admin, "before_update")
 def hash_password(mapper, connection, target):
     if target.password and not target.password.startswith("$2b$"):
         target.set_password(target.password)

@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqladmin import Admin
 
 from core.db import engine, settings
-from utils.admin.auth import AdminAuth 
+from utils.admin.auth import AdminAuth
 from utils.admin.views import AdminView, AnecdoteView
-
 import routers.anecdote_router as anecdote
 
 

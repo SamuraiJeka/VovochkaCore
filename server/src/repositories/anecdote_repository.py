@@ -19,13 +19,18 @@ class AnecdoteRepository:
         await self.__session.refresh(anecdote)
         return anecdote
     
-    async def get_page(self, offset: int, limit: int, search: str | None = None) -> list[Anecdote] | None:
+    async def get_page(
+        self,
+        offset: int,
+        limit: int,
+        search: str | None = None
+    ) -> list[Anecdote] | None:
         query = select(Anecdote).offset(offset).limit(limit)
         if search:
             query = query.filter(
                 or_(
                     Anecdote.name.ilike(f"%{search}%"),
-                    Anecdote.content.ilike(f"%{search}%")
+                    Anecdote.content.ilike(f"%{search}%"),
                 )
             )
         result = await self.__session.execute(query)
@@ -34,7 +39,12 @@ class AnecdoteRepository:
             raise AnecdoteNotFoundError
         return anecdote_list
     
-    async def get_category(self, offset: int, limit:int, tag: str) -> list[Anecdote] | None:
+    async def get_category(
+        self,
+        offset: int,
+        limit:int,
+        tag: str
+    ) -> list[Anecdote] | None:
         query = select(Anecdote).where(Anecdote.tag == tag).offset(offset).limit(limit)
         result = await self.__session.execute(query)
         anecdote_list = list(result.scalars().all())
@@ -94,7 +104,11 @@ class AnecdoteRepository:
         await self.__session.commit()
         return bool(result)
     
-    async def is_exist(self, anecdote_id: int | None = None, anecdote_name: str | None = None) -> bool | None:
+    async def is_exist(
+        self,
+        anecdote_id: int | None = None,
+        anecdote_name: str | None = None
+    ) -> bool | None:
         if anecdote_id is not None:
             query = select(exists().where(Anecdote.id == anecdote_id))
         elif anecdote_name is not None:
