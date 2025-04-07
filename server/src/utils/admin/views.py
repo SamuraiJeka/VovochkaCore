@@ -8,7 +8,7 @@ class AnecdoteView(ModelView, model=Anecdote):
     form_include_pk = True
     form_excluded_columns = [Admin.id]
 
-    column_list = [Anecdote.name, Anecdote.content, Anecdote.tag]
+    column_list = [Anecdote.name, Anecdote.tag]
     olumn_searchable_list = [Anecdote.name, Anecdote.content, Anecdote.tag]
 
 

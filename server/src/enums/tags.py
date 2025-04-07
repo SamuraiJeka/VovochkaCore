@@ -8,5 +8,6 @@ class Tags(Enum):
     MOTHER_IN_LAW = "про тёщу"
     ALCOHOL = "про алкошей"
     ZOO = "про зверей"
+    RZEVSKY = "про Ржевского"
     SHTIRLITS = "про Штирлица"
     OTHERS = "другое"
