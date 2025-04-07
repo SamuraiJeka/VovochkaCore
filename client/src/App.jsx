@@ -1,11 +1,9 @@
-import { useState } from 'react'
+import MainPage from './pages/MainPage/MainPage'
 import './App.css'
-import {RouterProvider } from "react-router-dom"
-import { router } from "./app/router"
 function App() {
 
   return (
-    <RouterProvider router={router} />
+    <MainPage/>
   )
 }
 
