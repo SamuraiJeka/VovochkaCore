@@ -60,14 +60,16 @@ const MainPage = () => {
           </div>
 
           <div className={styles.navLinks}>
-            <Link to="/categories" className={styles.navLink}>
-              Разделы
+            <Link to="/rzhevsky" className={styles.navLink}>
+              Ржевский
+            </Link>
+            <Link to="/jew" className={styles.navLink}>
+              Евреи
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Основной контент */}
       <main className={styles.mainContent}>
         {isLoading ? (
           <div className={styles.loader}>Загрузка...</div>
