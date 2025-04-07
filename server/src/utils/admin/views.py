@@ -6,10 +6,10 @@ from models.admin import Admin
 
 class AnecdoteView(ModelView, model=Anecdote):
     form_include_pk = True
-    form_excluded_columns = [Admin.id]
+    form_excluded_columns = [Anecdote.id]
 
     column_list = [Anecdote.name, Anecdote.tag]
-    olumn_searchable_list = [Anecdote.name, Anecdote.content, Anecdote.tag]
+    column_searchable_list = [Anecdote.name, Anecdote.content, Anecdote.tag]
 
 
 class AdminView(ModelView, model=Admin):
