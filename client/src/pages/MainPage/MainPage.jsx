@@ -63,6 +63,9 @@ const MainPage = () => {
             <Link to="/rzhevsky" className={styles.navLink}>
               Ржевский
             </Link>
+            <Link to="/vovochka" className={styles.navLink}>
+              Про вовочку
+            </Link>
             <Link to="/jew" className={styles.navLink}>
               Евреи
             </Link>

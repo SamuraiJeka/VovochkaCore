@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./JewPage.module.scss";
+import styles from "./VovaPage.module.scss";
 import { Link } from "react-router-dom";
 import { FiX, FiMenu } from "react-icons/fi";
 
-const JewPage = () => {
+const VovaPage = () => {
   const [pageCount, setPageCount] = useState(0);
   const [anecdotes, setAnecdotes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +15,7 @@ const JewPage = () => {
   
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(10);
-  const [tag, setTag] = useState("JEW");
+  const [tag, setTag] = useState("VOVOCHKA");
 
   const getRzhevskyAnecdote = async () => {
     try {
@@ -92,15 +92,16 @@ const JewPage = () => {
           </form>
 
           <div className={styles.navLinks}>
-            <Link to="/vovochka" className={styles.navLink}>
-                Про вовочку
-            </Link>
             <Link to="/rzhevsky" className={styles.navLink}>
                 Ржевский
+            </Link>
+            <Link to="/jew" className={styles.navLink}>
+                Евреи
             </Link>
             <Link to="/" className={styles.navLink}>
                 Главная страница
             </Link>
+            
           </div>
         </div>
       </nav>
@@ -169,4 +170,4 @@ const JewPage = () => {
   );
 };
 
-export default JewPage;
+export default VovaPage;

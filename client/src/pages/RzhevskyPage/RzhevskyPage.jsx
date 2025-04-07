@@ -92,6 +92,9 @@ const RzhevskyPage = () => {
           </form>
 
           <div className={styles.navLinks}>
+            <Link to="/vovochka" className={styles.navLink}>
+                Про вовочку
+            </Link>
             <Link to="/jew" className={styles.navLink}>
                 Евреи
             </Link>
