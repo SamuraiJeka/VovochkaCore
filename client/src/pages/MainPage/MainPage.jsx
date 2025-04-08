@@ -15,6 +15,7 @@ const TAGS = {
   OTHERS: "Другое"
 };
 
+
 const MainPage = () => {
   const [anecdote, setAnecdote] = useState({});
   const [anecdotesList, setAnecdotesList] = useState([]);
@@ -38,26 +39,26 @@ const MainPage = () => {
       setIsLoading(true);
       const response = await axios.get("http://localhost:5000/anecdote/random", {
         signal: controller.signal
-      });
+      })
       setAnecdote({
         name: response.data.name,
         content: response.data.content
-      });
-      setError("");
+      })
+      setError("")
     } catch (error) {
       if (!axios.isCancel(error)) {
-        console.error("Ошибка при получении анекдота:", error);
-        setError("Не удалось загрузить анекдот. Попробуйте еще раз.");
+        console.error("Ошибка при получении анекдота:", error)
+        setError("Не удалось загрузить анекдот. Попробуйте еще раз.")
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 
   const getAnecdotesByTag = async () => {
     try {
-      setIsLoading(true);
-      setAnecdotesList([]);
+      setIsLoading(true)
+      setAnecdotesList([])
       
       const response = await axios.get("http://localhost:5000/anecdote/category", {
         params: {
@@ -67,8 +68,8 @@ const MainPage = () => {
         },
         signal: controller.signal
       });
-      
-      setAnecdotesList(response.data);
+      console.log(response.data)
+      setAnecdotesList(response.data)
       setPagination(prev => ({
         ...prev,
         hasMore: response.data.length === prev.limit
@@ -271,6 +272,23 @@ const MainPage = () => {
               <div className={styles.empty}>Анекдотов не найдено</div>
             )}
           </div>
+          <div className={styles.pagination} style={{marginTop: "20px"}}>
+              <button 
+                onClick={() => handlePageChange(pagination.page - 1)} 
+                disabled={pagination.page === 0 || isLoading || anecdotesList.length === 0}
+              >
+                Назад
+              </button>
+              
+              <span>Страница {pagination.page + 1}</span>
+              
+              <button 
+                onClick={() => handlePageChange(pagination.page + 1)} 
+                disabled={!pagination.hasMore || isLoading || anecdotesList.length === 0}
+              >
+                Вперед
+              </button>
+            </div>
         </div>
       )}
     </div>
