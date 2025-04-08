@@ -15,41 +15,68 @@ const TAGS = {
   OTHERS: "Другое"
 };
 
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const MainPage = () => {
-  const [anecdote, setAnecdote] = useState({});
-  const [anecdotesList, setAnecdotesList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mode, setMode] = useState("random");
-  const [tag, setTag] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [anecdote, setAnecdote] = useState({})
+  const [anecdotesList, setAnecdotesList] = useState([])
+  const [searchResults, setSearchResults] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [mode, setMode] = useState("random")
+  const [tag, setTag] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const [pagination, setPagination] = useState({
     offset: 0,
     limit: 10,
     page: 0,
     hasMore: false
-  });
+  })
 
   const controller = new AbortController();
 
   const getRandomAnecdote = async () => {
     try {
       setIsLoading(true);
+      setAnecdotesList([])
+      setSearchResults([])
       const response = await axios.get("http://localhost:5000/anecdote/random", {
         signal: controller.signal
       })
-      setAnecdote({
-        name: response.data.name,
-        content: response.data.content
-      })
+      setAnecdote(response.data)
       setError("")
     } catch (error) {
-      if (!axios.isCancel(error)) {
-        console.error("Ошибка при получении анекдота:", error)
-        setError("Не удалось загрузить анекдот. Попробуйте еще раз.")
-      }
+      handleError(error, "Не удалось загрузить анекдот. Попробуйте еще раз.");
+    } finally {
+      setIsLoading(false)
+    }
+  };
+
+  const getSearchResults = async () => {
+    try {
+      setIsLoading(true);
+      setAnecdotesList([])
+      setAnecdote({})
+      setSearchResults([])
+      
+      const response = await axios.get("http://localhost:5000/anecdote/page", {
+        params: {
+          offset: pagination.offset,
+          limit: pagination.limit,
+          search: searchQuery.trim()
+        },
+        signal: controller.signal
+      })
+      
+      setSearchResults(response.data);
+      setPagination(prev => ({
+        ...prev,
+        hasMore: response.data.length === prev.limit
+      }));
+      setError("")
+    } catch (error) {
+      handleError(error, "Не удалось выполнить поиск. Попробуйте еще раз.");
     } finally {
       setIsLoading(false)
     }
@@ -58,6 +85,8 @@ const MainPage = () => {
   const getAnecdotesByTag = async () => {
     try {
       setIsLoading(true)
+      setAnecdote({}); 
+      setSearchResults([])
       setAnecdotesList([])
       
       const response = await axios.get("http://localhost:5000/anecdote/category", {
@@ -68,125 +97,115 @@ const MainPage = () => {
         },
         signal: controller.signal
       });
-      console.log(response.data)
-      setAnecdotesList(response.data)
+      
+      setAnecdotesList(response.data);
       setPagination(prev => ({
         ...prev,
         hasMore: response.data.length === prev.limit
       }));
       setError("");
     } catch (error) {
-      if (!axios.isCancel(error)) {
-        console.error("Ошибка при получении анекдотов:", error);
-        setError("Не удалось загрузить анекдоты. Попробуйте обновить страницу.");
-      }
+      handleError(error, "Не удалось загрузить анекдоты. Попробуйте обновить страницу.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleError = (error, message) => {
+    if (!axios.isCancel(error)) {
+      console.error("Ошибка:", error);
+      setError(message);
+    }
+  };
+
   useEffect(() => {
     if (mode === "random") {
-      getRandomAnecdote();
-    } else {
+      if (searchQuery.trim()) {
+        getSearchResults();
+      } else {
+        getRandomAnecdote();
+      }
+    } else if (mode === "list") {
       getAnecdotesByTag();
     }
 
     return () => controller.abort();
-  }, [mode, tag, pagination.offset, pagination.limit]);
+  }, [mode, tag, searchQuery, pagination.offset, pagination.limit]);
 
-  const handleTagSelect = (selectedTag) => {
-    setTag(selectedTag);
-    setMode("list");
-    setPagination({
-      offset: 0,
-      limit: 10,
-      page: 0,
-      hasMore: false
-    });
-    setSearchQuery("");
-  };
+  useEffect(() => {
+    // При изменении лимита сбрасываем пагинацию
+    setPagination(prev => ({ ...prev, offset: 0, page: 0 }));
+  }, [pagination.limit]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setTag(searchQuery.trim().toUpperCase());
-      setMode("list");
-      setPagination({
-        offset: 0,
-        limit: 10,
-        page: 0,
-        hasMore: false
-      });
+      setPagination(prev => ({ ...prev, offset: 0, page: 0 }));
+      setMode("random");
+    } else {
+      setMode("random");
+      getRandomAnecdote();
     }
+  };
+
+  const handleTagSelect = (selectedTag) => {
+    setTag(selectedTag);
+    setMode("list");
+    setSearchQuery("");
+    setPagination(prev => ({ ...prev, offset: 0, page: 0 }));
   };
 
   const handleRandomClick = () => {
     setMode("random");
     setTag(null);
     setSearchQuery("");
-    setAnecdotesList([]);
+    setPagination(prev => ({ ...prev, offset: 0, page: 0 }));
     getRandomAnecdote();
   };
 
-  const handlePageChange = (newPage) => {
-    if (newPage < 0 || (anecdotesList.length === 0 && newPage > pagination.page)) return;
-    setPagination(prev => ({
-      ...prev,
-      page: newPage,
-      offset: newPage * prev.limit
-    }));
+  const handlePageSizeChange = (e) => {
+    const newSize = parseInt(e.target.value);
+    setPagination(prev => ({ ...prev, limit: newSize }));
   };
 
-  const handleLimitChange = (newLimit) => {
-    setPagination({
-      offset: 0,
-      limit: Number(newLimit),
-      page: 0,
-      hasMore: false
-    });
-  };
+  const renderAnecdotes = (items) => (
+    <div className={styles.anecdotesList}>
+      {items.map((item) => (
+        <div key={item.id} className={styles.anecdoteCard}>
+          <h3>{item.name}</h3>
+          <p>{item.content}</p>
+          {item.tag && <div className={styles.tag}>#{item.tag}</div>}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className={styles.container}>
       <nav className={styles.navbar}>
         <div className={styles.navMobile}>
-          <button 
-            className={styles.menuButton}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <FiX /> : <FiMenu />}
           </button>
-          <div className={styles.logo} onClick={handleRandomClick}>
-            VovochkaCore
-          </div>
+          <div onClick={handleRandomClick}>VovochkaCore</div>
         </div>
 
         <div className={`${styles.navContent} ${isMenuOpen ? styles.active : ""}`}>
-          <form className={styles.searchContainer} onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Поиск анекдотов..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </form>
+          {mode === "random" && (
+            <form onSubmit={handleSearch} className={styles.searchContainer}>
+              <input
+                type="text"
+                placeholder="Поиск по содержанию..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+          )}
 
           <div className={styles.navLinks}>
-            <button 
-              className={styles.navLink}
-              onClick={handleRandomClick}
-            >
-              Случайный
-            </button>
-            
+            <button onClick={handleRandomClick}>Случайный</button>
             {Object.entries(TAGS).map(([key, value]) => (
-              <button
-                key={key}
-                className={styles.navLink}
-                onClick={() => handleTagSelect(key)}
-              >
+              <button key={key} onClick={() => handleTagSelect(key)}>
                 {value}
               </button>
             ))}
@@ -194,105 +213,82 @@ const MainPage = () => {
         </div>
       </nav>
 
-      {mode === "random" ? (
-        <main className={styles.mainContent}>
-          {isLoading ? (
-            <div className={styles.loader}>Загрузка...</div>
-          ) : error ? (
-            <div className={styles.error}>{error}</div>
-          ) : (
-            <div className={styles.anecdoteCard}>
-              <h1 className={styles.title}>{anecdote.name}</h1>
-              <p className={styles.content}>{anecdote.content}</p>
-            </div>
-          )}
+      <main className={styles.mainContent}>
+        {isLoading && <div className={styles.loader}>Загрузка...</div>}
+        {error && <div className={styles.error}>{error}</div>}
 
-          <button
-            onClick={getRandomAnecdote}
-            className={styles.randomButton}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Загрузка...' : 'Новый анекдот'}
-          </button>
-        </main>
-      ) : (
-        <div className={styles.listContent}>
-          <div className={styles.controls}>
-            <div className={styles.pagination}>
-              <button 
-                onClick={() => handlePageChange(pagination.page - 1)} 
-                disabled={pagination.page === 0 || isLoading || anecdotesList.length === 0}
-              >
-                Назад
-              </button>
-              
-              <span>Страница {pagination.page + 1}</span>
-              
-              <button 
-                onClick={() => handlePageChange(pagination.page + 1)} 
-                disabled={!pagination.hasMore || isLoading || anecdotesList.length === 0}
-              >
-                Вперед
-              </button>
-            </div>
-
-            <div className={styles.limitSelector}>
-              <label>Показывать по:</label>
-              <select
-                value={pagination.limit}
-                onChange={(e) => handleLimitChange(e.target.value)}
-                disabled={isLoading}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-          </div>
-
-          {error && <div className={styles.error}>{error}</div>}
-
-          <div className={styles.anecdotesList}>
-            {isLoading ? (
-              <div className={styles.loaderContainer}>
-                <div className={styles.loader}></div>
-              </div>
-            ) : anecdotesList.length > 0 ? (
-              anecdotesList.map((item) => (
-                <div key={`${item.id}-${pagination.page}`} className={styles.anecdoteCard}>
-                  <h3 className={styles.anecdoteTitle}>{item.name}</h3>
-                  <p className={styles.anecdoteContent}>{item.content}</p>
-                  <div className={styles.tags}>
-                    <span className={styles.tag}>#{item.tag}</span>
-                  </div>
-                </div>
-              ))
+        {mode === "random" ? (
+          <>
+            {searchQuery.trim() ? (
+              <>
+                <h2>Результаты поиска: "{searchQuery}"</h2>
+                {searchResults.length > 0 ? (
+                  renderAnecdotes(searchResults)
+                ) : (
+                  !isLoading && <div className={styles.noResults}>Ничего не найдено</div>
+                )}
+              </>
             ) : (
-              <div className={styles.empty}>Анекдотов не найдено</div>
+              <div className={styles.randomAnecdote}>
+                <h1>{anecdote.name}</h1>
+                <p>{anecdote.content}</p>
+                <button onClick={getRandomAnecdote} disabled={isLoading}>
+                  Новый анекдот
+                </button>
+              </div>
             )}
-          </div>
-          <div className={styles.pagination} style={{marginTop: "20px"}}>
+          </>
+        ) : (
+          <>
+            <h2>{TAGS[tag]}</h2>
+            {renderAnecdotes(anecdotesList)}
+          </>
+        )}
+        
+        {(searchResults.length > 0 || anecdotesList.length > 0) && (
+          <div className={styles.paginationControls}>
+            
+            
+            <div className={styles.pagination}>
+              <div className={styles.pageSizeSelector}>
+                <label>Элементов на странице:</label>
+                <select 
+                  value={pagination.limit}
+                  onChange={handlePageSizeChange}
+                  disabled={isLoading}
+                >
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </div>
               <button 
-                onClick={() => handlePageChange(pagination.page - 1)} 
-                disabled={pagination.page === 0 || isLoading || anecdotesList.length === 0}
+                onClick={() => setPagination(prev => ({ 
+                  ...prev, 
+                  offset: (prev.page - 1) * prev.limit,
+                  page: prev.page - 1 
+                }))}
+                disabled={pagination.page === 0}
               >
                 Назад
               </button>
-              
               <span>Страница {pagination.page + 1}</span>
-              
-              <button 
-                onClick={() => handlePageChange(pagination.page + 1)} 
-                disabled={!pagination.hasMore || isLoading || anecdotesList.length === 0}
+              <button
+                onClick={() => setPagination(prev => ({ 
+                  ...prev, 
+                  offset: (prev.page + 1) * prev.limit,
+                  page: prev.page + 1 
+                }))}
+                disabled={!pagination.hasMore}
               >
                 Вперед
               </button>
             </div>
-        </div>
-      )}
+          </div>
+        )}
+      </main>
     </div>
   );
 };
 
-export default MainPage;
+export default MainPage
